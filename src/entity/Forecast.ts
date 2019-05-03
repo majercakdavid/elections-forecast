@@ -4,7 +4,7 @@ import UserForecast from "./UserForecast";
 
 @Entity()
 export default class Forecast {
-    @ManyToOne(type => UserForecast, {primary: true})
+    @ManyToOne(type => UserForecast, userForecast => userForecast.forecasts, {primary: true})
     userForecast: UserForecast;
 
     @PrimaryColumn()

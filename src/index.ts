@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import './websockets';
 
 import * as bodyParser from 'body-parser';
+import * as cors from 'cors';
 import express from 'express';
 import { createConnection } from 'typeorm';
 
