@@ -6,5 +6,5 @@ export default class UserForecast {
     @PrimaryColumn({unique: true}) email: string;
     @PrimaryColumn({unique: true}) nickname: string;
     @Column() region: string;
-    @Column("increment") latestVersion: number;
+    @Column() latestVersion: number;
 }

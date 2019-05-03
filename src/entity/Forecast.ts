@@ -4,15 +4,13 @@ import UserForecast from "./UserForecast";
 
 @Entity()
 export default class Forecast {
-    @PrimaryColumn()
-    @ManyToOne(type => UserForecast)
+    @ManyToOne(type => UserForecast, {primary: true})
     userForecast: UserForecast;
 
     @PrimaryColumn()
     version: number;
 
-    @PrimaryColumn()
-    @ManyToOne(type => Party)
+    @ManyToOne(type => Party, {primary: true})
     @JoinColumn()
     party: Party;
 
