@@ -1,118 +1,39 @@
+// Needed for the TypeORM
+import 'reflect-metadata';
 
+// Start WebSockets
+import './websockets';
+
+import * as bodyParser from 'body-parser';
 import express from 'express';
-import { getManager, getRepository } from 'typeorm';
+import { createConnection } from 'typeorm';
 
-import { IClientForecastInput, IClientGetForecastInput } from './interface/IClientForecast';
+import routes from './route';
 
-import Forecast from './entity/Forecast';
-import Party from './entity/Party';
-import UserForecast from './entity/UserForecast';
-
+require('dotenv').config();
 const app = express();
 const port = 3000;
 
-app.get('/all-parties', async (req: express.Request, res: express.Response) => {
-    const parties = await getRepository(Party).find();
-    res.json({ message: 'ok', data: parties });
-});
+// createConnection method will automatically read connection options
+// from your ormconfig file or environment variables
+createConnection().then(connection => {
+    console.log('Successfully connected to PG database!');
+    console.log('Entities: ' + connection.entityMetadatas.map(v => v.name));
 
-app.post('/forecast', async (req: express.Request, res: express.Response) => {
-    const clientUserForecast: IClientForecastInput = req.body;
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-    if (!clientUserForecast.id && !clientUserForecast.region) {
-        throw new Error("Either id or region must be provided");
-    }
-    await getManager().transaction(async entityManager => {
-        let userForecast = null;
-        if (typeof clientUserForecast.region !== "undefined" && typeof clientUserForecast.id === "undefined") {
-            // Check whether the user already submitted a forecast
-            const emailUserForecasts =
-                await entityManager.getRepository(UserForecast).find({ email: clientUserForecast.email });
-            if (emailUserForecasts.length !== 0) {
-                throw new Error("The user with this email already exists!");
-            }
+    app.use('/', routes);
+    // app.get('/', (req, res) => res.status(200).send("Election API"));
 
-            userForecast = new UserForecast();
-            userForecast.email = clientUserForecast.email;
-            userForecast.latestVersion = 1;
-            userForecast.region = clientUserForecast.region;
-            await entityManager.save(userForecast);
-            for (const f of clientUserForecast.forecasts) {
-                const forecast = new Forecast();
-                const party = await entityManager.getRepository(Party).findOne(f.id);
-
-                if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!')
-                }
-
-                forecast.percentage = f.percentage;
-                forecast.version = userForecast.latestVersion;
-                forecast.userForecast = userForecast;
-                await entityManager.save(forecast);
-            }
-        } else {
-            userForecast = await entityManager.getRepository(UserForecast).findOneOrFail(clientUserForecast.id);
-
-            if (typeof clientUserForecast.region !== 'undefined') {
-                userForecast.region = clientUserForecast.region;
-            }
-
-            userForecast.latestVersion = userForecast.latestVersion + 1;
-            for (const f of clientUserForecast.forecasts) {
-                const forecast = new Forecast();
-                const party = await entityManager.getRepository(Party).findOne(f.id);
-
-                if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!')
-                }
-
-                forecast.percentage = f.percentage;
-                forecast.version = userForecast.latestVersion;
-                forecast.userForecast = userForecast;
-                await entityManager.save(forecast);
-            }
-            await entityManager.save(userForecast);
+    const server = app.listen(port, 'localhost', () => {
+        if (server !== null) {
+            console.log("app running on port.", server.address());
         }
-
-        res.json({ message: 'ok', data: userForecast });
+        app.emit("appStarted");
     });
+}).catch(reason => {
+    console.log(reason);
 });
 
-app.get('/get-forecast', async (req: express.Request, res: express.Response) => {
-    const clientGetForecast: IClientGetForecastInput = req.body;
-    if (!clientGetForecast.email) {
-        throw new Error('Email needs to be specified to retrieve forecast');
-    }
-
-    const clientUserForecast = await getRepository(UserForecast).findOne({ email: clientGetForecast.email });
-
-    if (!clientGetForecast) {
-        throw new Error('User with specified email does not exist!');
-    }
-
-    const forecasts = await getRepository(Forecast).find({
-        userForecast: clientUserForecast,
-        version: (clientUserForecast as any).latestVersion,
-    });
-
-    res.json({ message: 'ok', data: forecasts });
-});
-
-// app.post('/update-forecast', async (req: express.Request, res: express.Response) => {
-//     const clientUpdateForecast: IClientForecastUpdateInput = req.body;
-
-//     if (clientUpdateForecast.id === null || clientUpdateForecast.id === undefined) {
-//         throw new Error('The id of forecast must be defined');
-//     }
-
-//     return await getManager().transaction(async entityManager => {
-//         const userForecast = await entityManager.getRepository(UserForecast).findOneOrFail(clientUpdateForecast.id);
-//         const newVersion = userForecast.latestVersion + 1;
-
-//         for (const forecast of clientUpdateForecast.forecasts) {
-
-//         }
-//     });
-// });
-
-app.listen(port, "0.0.0.0");
+export default app;
