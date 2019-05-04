@@ -84,6 +84,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
                     throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
                 }
 
+                forecast.party = party;
                 forecast.percentage = f.percentage;
                 forecast.version = userForecast.latestVersion;
                 forecast.userForecast = userForecast;
