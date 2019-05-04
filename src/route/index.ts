@@ -1,10 +1,10 @@
 import express from 'express';
 import { getManager, getRepository } from 'typeorm';
-import { IClientForecastInput, IClientGetForecastInput } from '../interface/IClientForecast';
-
 import Forecast from '../entity/Forecast';
 import Party from '../entity/Party';
 import UserForecast from '../entity/UserForecast';
+import {IClientForecastInput, IClientGetForecastInput, IClientUpdateForecastInput} from '../interface/IClientForecast';
+import {evaluateForecasts, validateEmail, validateForecasts, validateRegion} from "../utils/validation.utils";
 
 const router = require('express').Router();
 
@@ -17,83 +17,129 @@ router.get('/all-parties', async (req: express.Request, res: express.Response) =
     res.json({ message: 'ok', data: parties });
 });
 
+router.patch('/forecast', async (req: express.Request, res: express.Response) => {
+    const clientUpdateForecast: IClientUpdateForecastInput = req.body;
+
+    if (!clientUpdateForecast.id) {
+        res.status(400).send("it's not possible to handle the request");
+        return;
+    }
+
+    if (!validateForecasts(clientUpdateForecast.forecasts)) {
+        res.status(400).send("forecasts not valid");
+        return;
+    }
+
+    const valid = evaluateForecasts(clientUpdateForecast.forecasts);
+
+    await getManager().transaction(async entityManager => {
+        const userForecast = await entityManager.getRepository(UserForecast).findOne(clientUpdateForecast.id).catch(
+            () => {
+                // if the uuid is not in the right format it will fail without returning null
+                return null;
+            },
+        ).then((value) => {
+            return value;
+        });
+
+        if (!userForecast) {
+            res.status(400).send('uuid not valid!');
+            return;
+        }
+
+        userForecast.latestVersion = userForecast.latestVersion + 1;
+        const predictions = [];
+
+        for (const f of clientUpdateForecast.forecasts) {
+            const forecast = new Forecast();
+            const party = await entityManager.getRepository(Party).findOne(f.id).catch(
+                () => {
+                    return null;
+                },
+            );
+
+            if (!party) {
+                res.status(400).send('Fuck!');
+                return;
+            }
+
+            forecast.valid = valid;
+            forecast.party = party;
+            forecast.percentage = f.percentage;
+            forecast.version = userForecast.latestVersion;
+            forecast.userForecast = userForecast;
+            predictions.push(forecast);
+        }
+        await entityManager.save(userForecast);
+        await entityManager.save(predictions);
+        res.json({ message: 'Forecast correctly updated.'});
+    });
+
+});
+
 router.post('/forecast', async (req: express.Request, res: express.Response) => {
     const clientUserForecast: IClientForecastInput = req.body;
 
-    if (!clientUserForecast.id && !clientUserForecast.region) {
-        throw new Error("Either id or region must be provided");
+    if (!clientUserForecast.region || !clientUserForecast.email || !clientUserForecast.nickname
+        || !validateEmail(clientUserForecast.email) || !validateRegion(clientUserForecast.region)) {
+        res.status(400).send("Problem with user info.");
+        return;
+        // throw new Error("Either id or region must be provided");
     }
 
-    let forecastSum = 0;
-    for (const f of clientUserForecast.forecasts) {
-        forecastSum += f.percentage;
+    if (!validateForecasts(clientUserForecast.forecasts)) {
+        res.status(400).send("Forecasts not valid.");
+        return;
     }
 
-    if (forecastSum !== 100) {
-        throw new Error("The sum of all forecasts must be 100");
-    }
+    const valid = evaluateForecasts(clientUserForecast.forecasts);
 
     await getManager().transaction(async entityManager => {
-        let userForecast = null;
-        if (typeof clientUserForecast.region !== "undefined" && typeof clientUserForecast.id === "undefined") {
 
-            if (typeof clientUserForecast.nickname === "undefined") {
-                throw new Error("Nickname needs to be specified");
-            }
+        // Check whether the user already submitted a forecast
+        const emailUserForecasts =
+            await entityManager.getRepository(UserForecast).findOne({email: clientUserForecast.email});
 
-            // Check whether the user already submitted a forecast
-            const emailUserForecasts =
-                await entityManager.getRepository(UserForecast).find({ email: clientUserForecast.email });
-            if (emailUserForecasts.length !== 0) {
-                throw new Error("The user with this email already exists!");
-            }
-
-            userForecast = new UserForecast();
-            userForecast.email = clientUserForecast.email;
-            userForecast.latestVersion = 1;
-            userForecast.region = clientUserForecast.region;
-            userForecast.nickname = clientUserForecast.nickname;
-            await entityManager.save(userForecast);
-            for (const f of clientUserForecast.forecasts) {
-                const forecast = new Forecast();
-                const party = await entityManager.getRepository(Party).findOne(f.id);
-
-                if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
-                }
-
-                forecast.party = party;
-                forecast.percentage = f.percentage;
-                forecast.version = userForecast.latestVersion;
-                forecast.userForecast = userForecast;
-                await entityManager.save(forecast);
-            }
-        } else {
-            userForecast = await entityManager.getRepository(UserForecast).findOneOrFail(clientUserForecast.id);
-
-            if (typeof clientUserForecast.region !== 'undefined') {
-                userForecast.region = clientUserForecast.region;
-            }
-
-            userForecast.latestVersion = userForecast.latestVersion + 1;
-            for (const f of clientUserForecast.forecasts) {
-                const forecast = new Forecast();
-                const party = await entityManager.getRepository(Party).findOne(f.id);
-
-                if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
-                }
-
-                forecast.party = party;
-                forecast.percentage = f.percentage;
-                forecast.version = userForecast.latestVersion;
-                forecast.userForecast = userForecast;
-                await entityManager.save(forecast);
-            }
-            await entityManager.save(userForecast);
+        if (emailUserForecasts) {
+            res.status(400).send("email already in use.");
+            return;
         }
 
-        res.json({ message: 'ok', data: userForecast });
+        const nickname =
+            await entityManager.getRepository(UserForecast).findOne({nickname: clientUserForecast.nickname});
+
+        if (nickname) {
+            res.status(400).send("nickname already in use.");
+            return;
+        }
+
+        const userForecast = new UserForecast();
+        userForecast.email = clientUserForecast.email;
+        userForecast.latestVersion = 1;
+        userForecast.region = clientUserForecast.region;
+        userForecast.nickname = clientUserForecast.nickname;
+        const predictions = [];
+        for (const f of clientUserForecast.forecasts) {
+            const forecast = new Forecast();
+            const party = await entityManager.getRepository(Party).findOne(f.id);
+
+            if(!party) {
+                res.status(400).send("fuck!");
+                return;
+            }
+
+            forecast.valid = valid;
+            forecast.party = party;
+            forecast.percentage = f.percentage;
+            forecast.version = userForecast.latestVersion;
+            forecast.userForecast = userForecast;
+
+            predictions.push(forecast);
+        }
+        // todo: what happen if it fail in saving?
+        await entityManager.save(userForecast);
+        await entityManager.save(predictions);
+        res.json({ message: 'Forecast correctly saved.', data: {uuid: userForecast.id }});
     });
 });
 

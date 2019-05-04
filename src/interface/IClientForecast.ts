@@ -1,9 +1,13 @@
 export interface IClientForecastInput {
     forecasts: IClientForecastPartyInput[];
     email: string;
-    nickname?: string;
-    region?: string;
-    id?: string;
+    nickname: string;
+    region: string;
+}
+
+export interface IClientUpdateForecastInput {
+    forecasts: IClientForecastPartyInput[];
+    id: string;
 }
 
 export interface IClientForecastPartyInput {
