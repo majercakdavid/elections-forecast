@@ -103,7 +103,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
     }
 
     const clientUserForecast = await getRepository(UserForecast)
-        .findOne({ id: clientGetForecast.id }, { relations: ['forecasts', 'party'] });
+        .findOne(clientGetForecast.id);
 
     if (!clientUserForecast) {
         throw new Error('User with specified email does not exist!');
@@ -112,6 +112,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
     const forecasts = await getRepository(Forecast).find({
         userForecast: clientUserForecast,
         version: clientUserForecast.latestVersion,
+        relations: ["party"],
     });
 
     res.json({ message: 'ok', data: forecasts });
