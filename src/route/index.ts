@@ -84,6 +84,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
                     throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
                 }
 
+                forecast.party = party;
                 forecast.percentage = f.percentage;
                 forecast.version = userForecast.latestVersion;
                 forecast.userForecast = userForecast;
@@ -97,13 +98,13 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 });
 
 router.get('/get-forecast', async (req: express.Request, res: express.Response) => {
-    const clientGetForecast: IClientGetForecastInput = req.body;
+    const clientGetForecast: IClientGetForecastInput = req.query;
     if (!clientGetForecast.id) {
         throw new Error('UUID needs to be specified to retrieve forecast');
     }
 
     const clientUserForecast = await getRepository(UserForecast)
-        .findOne({ id: clientGetForecast.id }, { relations: ['forecasts', 'party'] });
+        .findOne(clientGetForecast.id);
 
     if (!clientUserForecast) {
         throw new Error('User with specified email does not exist!');
