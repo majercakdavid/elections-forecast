@@ -145,26 +145,38 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 
 router.get('/get-forecast', async (req: express.Request, res: express.Response) => {
     const clientGetForecast: IClientGetForecastInput = req.query;
+
     if (!clientGetForecast.id) {
-        throw new Error('UUID needs to be specified to retrieve forecast');
+        res.status(400).send("it's not possible to handle the request");
+        return;
     }
 
     const clientUserForecast = await getRepository(UserForecast)
-        .findOne(clientGetForecast.id);
+        .findOne(clientGetForecast.id).catch(
+            () => {
+                // if the uuid is not in the right format it will fail without returning null
+                return null;
+            },
+        ).then((value) => {
+            return value;
+        });
 
     if (!clientUserForecast) {
-        throw new Error('User with specified email does not exist!');
+        res.status(400).send('Error while retrieving the forecast.');
+        return;
+        // throw new Error('Forecast with specified uuid does not exist!');
     }
 
     const forecasts = await getRepository(Forecast).find({
         relations: ['party'],
+        select: ["percentage", "party"],
         where: {
             userForecast: clientUserForecast,
             version: clientUserForecast.latestVersion,
         },
     });
 
-    res.json({ message: 'ok', data: forecasts });
+    res.json({ message: 'forecast retrieved correctly', data: forecasts });
 });
 
 export default router;
