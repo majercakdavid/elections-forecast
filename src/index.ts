@@ -1,9 +1,6 @@
 // Needed for the TypeORM
 import 'reflect-metadata';
 
-// Start WebSockets
-import './websockets';
-
 import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
