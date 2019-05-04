@@ -10,7 +10,7 @@ import UserForecast from '../entity/UserForecast';
 const router = require('express').Router();
 
 router.get('/', (req: express.Request, res: express.Response) => {
-    res.status(200).send("Election API")
+    res.status(200).send("Election Forecast API");
 });
 
 router.get('/all-parties', async (req: express.Request, res: express.Response) => {
@@ -27,6 +27,11 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
     await getManager().transaction(async entityManager => {
         let userForecast = null;
         if (typeof clientUserForecast.region !== "undefined" && typeof clientUserForecast.id === "undefined") {
+
+            if (typeof clientUserForecast.nickname === "undefined") {
+                throw new Error("Nickname needs to be specified");
+            }
+
             // Check whether the user already submitted a forecast
             const emailUserForecasts =
                 await entityManager.getRepository(UserForecast).find({ email: clientUserForecast.email });
@@ -38,6 +43,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
             userForecast.email = clientUserForecast.email;
             userForecast.latestVersion = 1;
             userForecast.region = clientUserForecast.region;
+            userForecast.nickname = clientUserForecast.nickname;
             await entityManager.save(userForecast);
             for (const f of clientUserForecast.forecasts) {
                 const forecast = new Forecast();
