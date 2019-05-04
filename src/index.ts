@@ -5,7 +5,7 @@ import 'reflect-metadata';
 import './websockets';
 
 import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
+import cors from 'cors';
 import express from 'express';
 import { createConnection } from 'typeorm';
 
@@ -14,6 +14,13 @@ import routes from './route';
 require('dotenv').config();
 const app = express();
 const port = 3000;
+
+// cors
+app.use(
+    cors({
+        origin: '*',
+    }),
+);
 
 // createConnection method will automatically read connection options
 // from your ormconfig file or environment variables

@@ -1,6 +1,5 @@
 import express from 'express';
 import { getManager, getRepository } from 'typeorm';
-
 import { IClientForecastInput, IClientGetForecastInput } from '../interface/IClientForecast';
 
 import Forecast from '../entity/Forecast';
@@ -72,7 +71,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
                 const party = await entityManager.getRepository(Party).findOne(f.id);
 
                 if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!')
+                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
                 }
 
                 forecast.percentage = f.percentage;
