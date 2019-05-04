@@ -102,15 +102,15 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
         throw new Error('UUID needs to be specified to retrieve forecast');
     }
 
-    const clientUserForecast = await getRepository(UserForecast).findOne({ id: clientGetForecast.id });
+    const clientUserForecast = await getRepository(UserForecast).findOne(clientGetForecast.id);
 
-    if (!clientGetForecast) {
+    if (!clientUserForecast) {
         throw new Error('User with specified email does not exist!');
     }
 
     const forecasts = await getRepository(Forecast).find({
         userForecast: clientUserForecast,
-        version: (clientUserForecast as any).latestVersion,
+        version: clientUserForecast.latestVersion,
     });
 
     res.json({ message: 'ok', data: forecasts });
