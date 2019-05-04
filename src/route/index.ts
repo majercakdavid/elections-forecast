@@ -110,8 +110,11 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
     }
 
     const forecasts = await getRepository(Forecast).find({
-        userForecast: clientUserForecast,
-        version: clientUserForecast.latestVersion,
+        relations: ['party'],
+        where: {
+            userForecast: clientUserForecast,
+            version: clientUserForecast.latestVersion,
+        },
     });
 
     res.json({ message: 'ok', data: forecasts });
