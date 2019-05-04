@@ -9,7 +9,7 @@ import {evaluateForecasts, validateEmail, validateForecasts, validateRegion} fro
 const router = require('express').Router();
 
 router.get('/', (req: express.Request, res: express.Response) => {
-    res.status(200).send("Election Forecast API");
+    res.status(200).send("Election Forecasts API");
 });
 
 router.get('/all-parties', async (req: express.Request, res: express.Response) => {
@@ -59,7 +59,7 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
             );
 
             if (!party) {
-                res.status(400).send('Fuck!');
+                res.status(400).send('fuck!');
                 return;
             }
 
@@ -72,7 +72,7 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
         }
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
-        res.json({ message: 'Forecast correctly updated.'});
+        res.json({ message: 'forecast correctly updated.'});
     });
 
 });
@@ -82,13 +82,13 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 
     if (!clientUserForecast.region || !clientUserForecast.email || !clientUserForecast.nickname
         || !validateEmail(clientUserForecast.email) || !validateRegion(clientUserForecast.region)) {
-        res.status(400).send("Problem with user info.");
+        res.status(400).send("problem with user info.");
         return;
         // throw new Error("Either id or region must be provided");
     }
 
     if (!validateForecasts(clientUserForecast.forecasts)) {
-        res.status(400).send("Forecasts not valid.");
+        res.status(400).send("forecasts not valid.");
         return;
     }
 
@@ -139,7 +139,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         // todo: what happen if it fail in saving?
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
-        res.json({ message: 'Forecast correctly saved.', data: {uuid: userForecast.id }});
+        res.json({ message: 'forecast correctly saved.', data: {uuid: userForecast.id }});
     });
 });
 
@@ -162,7 +162,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
         });
 
     if (!clientUserForecast) {
-        res.status(400).send('Error while retrieving the forecast.');
+        res.status(400).send('error while retrieving the forecast.');
         return;
         // throw new Error('Forecast with specified uuid does not exist!');
     }
