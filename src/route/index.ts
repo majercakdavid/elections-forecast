@@ -97,7 +97,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 });
 
 router.get('/get-forecast', async (req: express.Request, res: express.Response) => {
-    const clientGetForecast: IClientGetForecastInput = req.body;
+    const clientGetForecast: IClientGetForecastInput = req.query;
     if (!clientGetForecast.id) {
         throw new Error('UUID needs to be specified to retrieve forecast');
     }
