@@ -23,6 +23,16 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
     if (!clientUserForecast.id && !clientUserForecast.region) {
         throw new Error("Either id or region must be provided");
     }
+
+    let forecastSum = 0;
+    for (const f of clientUserForecast.forecasts) {
+        forecastSum += f.percentage;
+    }
+
+    if (forecastSum !== 100) {
+        throw new Error("The sum of all forecasts must be 100");
+    }
+
     await getManager().transaction(async entityManager => {
         let userForecast = null;
         if (typeof clientUserForecast.region !== "undefined" && typeof clientUserForecast.id === "undefined") {
