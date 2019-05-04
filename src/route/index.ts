@@ -50,9 +50,10 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
                 const party = await entityManager.getRepository(Party).findOne(f.id);
 
                 if (!party) {
-                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!')
+                    throw Error('Party with a given symbol, ' + f.id + ' ,could not be found!');
                 }
 
+                forecast.party = party;
                 forecast.percentage = f.percentage;
                 forecast.version = userForecast.latestVersion;
                 forecast.userForecast = userForecast;
