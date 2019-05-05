@@ -20,7 +20,7 @@ router.get('/all-parties', async (req: express.Request, res: express.Response) =
 router.patch('/forecast', async (req: express.Request, res: express.Response) => {
     const clientUpdateForecast: IClientUpdateForecastInput = req.body;
 
-    if (!clientUpdateForecast.id) {
+    if (!clientUpdateForecast.id || !clientUpdateForecast.forecasts) {
         res.status(400).send("it's not possible to handle the request");
         return;
     }
