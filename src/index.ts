@@ -29,9 +29,10 @@ createConnection().then(connection => {
     app.use(bodyParser.urlencoded({ extended: true }));
 
     app.use('/forecast-service', routes);
-    app.get('/*', (req: express.Request, res: express.Response) => {
+    app.get('/', (req: express.Request, res: express.Response) => {
         res.status(200).send("Election Forecasts API");
     });
+    app.get('/*', (req, res) => res.status(404).send("Resources Not Found"));
 
     const server = app.listen(port, 'localhost', () => {
         if (server !== null) {
