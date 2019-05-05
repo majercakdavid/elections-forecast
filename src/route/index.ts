@@ -169,7 +169,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
         },
     });
 
-    res.json({ message: 'forecast retrieved correctly', data: forecasts });
+    res.json({ message: 'forecast retrieved correctly', data: {forecast: forecasts, uuid: clientUserForecast.id}});
 });
 
 export default router;
