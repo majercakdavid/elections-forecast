@@ -146,16 +146,16 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 router.get('/get-forecast', async (req: express.Request, res: express.Response) => {
     const clientGetForecast: IClientGetForecastInput = req.query;
 
-    if (!clientGetForecast.email || !validateEmail(clientGetForecast.email)) {
-        res.status(400).send("it's not possible to handle the given email");
+    if (!clientGetForecast.nickname) {
+        res.status(400).send("nickname not valid.");
         return;
     }
 
     const clientUserForecast = await getRepository(UserForecast)
-        .findOne({email: clientGetForecast.email});
+        .findOne({nickname: clientGetForecast.nickname});
 
     if (!clientUserForecast) {
-        res.status(400).send('the email has not been used to send a forecast.');
+        res.status(400).send('the nickname has not been used to send a forecast.');
         return;
         // throw new Error('Forecast with specified uuid does not exist!');
     }
