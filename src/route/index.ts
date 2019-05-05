@@ -59,7 +59,7 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
             );
 
             if (!party) {
-                res.status(400).send('fuck!');
+                res.status(500).send('fuck!');
                 return;
             }
 
@@ -124,7 +124,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
             const party = await entityManager.getRepository(Party).findOne(f.id);
 
             if(!party) {
-                res.status(400).send("fuck!");
+                res.status(500).send("fuck!");
                 return;
             }
 
