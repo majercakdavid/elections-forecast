@@ -84,7 +84,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         || !validateEmail(clientUserForecast.email) || !validateRegion(clientUserForecast.region)) {
         res.status(400).send("problem with user info.");
         return;
-        // throw new Error("Either id or region must be provided");
+        // throw new Error("Either email or region must be provided");
     }
 
     if (!validateForecasts(clientUserForecast.forecasts)) {
@@ -146,23 +146,16 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 router.get('/get-forecast', async (req: express.Request, res: express.Response) => {
     const clientGetForecast: IClientGetForecastInput = req.query;
 
-    if (!clientGetForecast.id) {
-        res.status(400).send("it's not possible to handle the request");
+    if (!clientGetForecast.email || !validateEmail(clientGetForecast.email)) {
+        res.status(400).send("it's not possible to handle the given email");
         return;
     }
 
     const clientUserForecast = await getRepository(UserForecast)
-        .findOne(clientGetForecast.id).catch(
-            () => {
-                // if the uuid is not in the right format it will fail without returning null
-                return null;
-            },
-        ).then((value) => {
-            return value;
-        });
+        .findOne({email: clientGetForecast.email});
 
     if (!clientUserForecast) {
-        res.status(400).send('error while retrieving the forecast.');
+        res.status(400).send('the email has not been used to send a forecast.');
         return;
         // throw new Error('Forecast with specified uuid does not exist!');
     }

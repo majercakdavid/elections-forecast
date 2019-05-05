@@ -16,5 +16,5 @@ export interface IClientForecastPartyInput {
 }
 
 export interface IClientGetForecastInput {
-    id: string;
+    email: string;
 }
