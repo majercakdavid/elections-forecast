@@ -14,7 +14,7 @@ export default class Forecast {
     @JoinColumn()
     party: Party;
 
-    @Column('numeric', {precision: 3, scale: 1})
+    @Column('numeric', {precision: 4, scale: 1})
     percentage: number;
 
     @Column({default: true})

@@ -47,6 +47,11 @@ const regions = [
  * @return boolean
  */
 export function evaluateForecasts(forecasts: IClientForecastPartyInput[]): boolean {
+    for (const forecast of forecasts) {
+        if (forecast.percentage > 60) {
+            return false;
+        }
+    }
     return true;
 }
 
