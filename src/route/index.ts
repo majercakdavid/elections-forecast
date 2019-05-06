@@ -139,7 +139,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         // todo: what happen if it fail in saving?
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
-        res.json({ message: 'pronostico salvato correttamente.', data: {uuid: userForecast.id }});
+        res.json({ message: 'pronostico salvato correttamente.', data: {}});
     });
 });
 
