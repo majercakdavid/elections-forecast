@@ -12,16 +12,11 @@ require('dotenv').config();
 const app = express();
 const port = 3000;
 
-// cors
-app.use(
-    cors({
-        origin: '*',
-    }),
-);
-
 // createConnection method will automatically read connection options
 // from your ormconfig file or environment variables
 createConnection().then(connection => {
+    // cors
+    app.use(cors());
     console.log('Successfully connected to PG database!');
     console.log('Entities: ' + connection.entityMetadatas.map(v => v.name));
 
@@ -29,12 +24,10 @@ createConnection().then(connection => {
     app.use(bodyParser.urlencoded({ extended: true }));
 
     app.use('/forecast-service', routes);
-    app.get('/', (req: express.Request, res: express.Response) => {
-        res.status(200).send("Election Forecasts API");
-    });
-    app.get('/*', (req, res) => res.status(404).send("Resources Not Found"));
+    app.get('/', (req, res) => res.send('Elections Api'));
+    app.get('/*', (req, res) => res.status(404).send('Resource not found.'));
 
-    const server = app.listen(port, 'localhost', () => {
+    const server = app.listen(port, '0.0.0.0', () => {
         if (server !== null) {
             console.log("app running on port.", server.address());
         }

@@ -21,12 +21,12 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
     const clientUpdateForecast: IClientUpdateForecastInput = req.body;
 
     if (!clientUpdateForecast.id || !clientUpdateForecast.forecasts) {
-        res.status(400).send("it's not possible to handle the request");
+        res.status(400).send("impossibile gestire la richiesta.");
         return;
     }
 
     if (!validateForecasts(clientUpdateForecast.forecasts)) {
-        res.status(400).send("forecasts not valid");
+        res.status(400).send("pronostico non valido.");
         return;
     }
 
@@ -43,7 +43,7 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
         });
 
         if (!userForecast) {
-            res.status(400).send('uuid not valid!');
+            res.status(400).send('id non valido.');
             return;
         }
 
@@ -72,7 +72,7 @@ router.patch('/forecast', async (req: express.Request, res: express.Response) =>
         }
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
-        res.json({ message: 'forecast correctly updated.'});
+        res.json({ message: 'pronostico aggiornato correttamente.'});
     });
 
 });
@@ -82,13 +82,13 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 
     if (!clientUserForecast.region || !clientUserForecast.email || !clientUserForecast.nickname
         || !validateEmail(clientUserForecast.email) || !validateRegion(clientUserForecast.region)) {
-        res.status(400).send("problem with user info.");
+        res.status(400).send("informazioni utente non valide.");
         return;
         // throw new Error("Either email or region must be provided");
     }
 
     if (!validateForecasts(clientUserForecast.forecasts)) {
-        res.status(400).send("forecasts not valid.");
+        res.status(400).send("pronostico non valido.");
         return;
     }
 
@@ -101,7 +101,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
             await entityManager.getRepository(UserForecast).findOne({email: clientUserForecast.email});
 
         if (emailUserForecasts) {
-            res.status(400).send("email already in use.");
+            res.status(400).send("email già utilizzata.");
             return;
         }
 
@@ -109,7 +109,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
             await entityManager.getRepository(UserForecast).findOne({nickname: clientUserForecast.nickname});
 
         if (nickname) {
-            res.status(400).send("nickname already in use.");
+            res.status(400).send("nickname già utilizzato.");
             return;
         }
 
@@ -139,7 +139,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         // todo: what happen if it fail in saving?
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
-        res.json({ message: 'forecast correctly saved.', data: {uuid: userForecast.id }});
+        res.json({ message: 'pronostico salvato correttamente.', data: {uuid: userForecast.id }});
     });
 });
 
@@ -147,7 +147,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
     const clientGetForecast: IClientGetForecastInput = req.query;
 
     if (!clientGetForecast.nickname) {
-        res.status(400).send("nickname not valid.");
+        res.status(400).send("nickname non valido.");
         return;
     }
 
@@ -155,7 +155,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
         .findOne({nickname: clientGetForecast.nickname});
 
     if (!clientUserForecast) {
-        res.status(400).send('the nickname has not been used to send a forecast.');
+        res.status(400).send('il nickname non è associato a nessun pronostico.');
         return;
         // throw new Error('Forecast with specified uuid does not exist!');
     }
@@ -169,7 +169,7 @@ router.get('/get-forecast', async (req: express.Request, res: express.Response) 
         },
     });
 
-    res.json({ message: 'forecast retrieved correctly', data: {forecast: forecasts, uuid: clientUserForecast.id}});
+    res.json({ message: 'pronostico recuperato correttamente.', data: {forecast: forecasts, uuid: clientUserForecast.id}});
 });
 
 export default router;
