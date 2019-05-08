@@ -65,7 +65,7 @@ export function validateForecasts(forecasts: IClientForecastPartyInput[]): boole
         if (f.percentage < 0 || f.percentage === null || f.percentage === undefined || !partiesId.includes(f.id)) {
             return false;
         }
-        forecastSum += f.percentage;
+        forecastSum = precisionRound(forecastSum, 4) + precisionRound(f.percentage, 4);
     }
     return forecastSum === 100;
 }
@@ -85,4 +85,12 @@ export function validateEmail(email: string): boolean {
  */
 export function validateRegion(region: string): boolean {
     return regions.includes(region);
+}
+
+/**
+ * Round a number according to a specific precision
+ */
+function precisionRound(numb: number, precision: number): number {
+    const factor = Math.pow(10, precision);
+    return Math.round(numb * factor) / factor;
 }
