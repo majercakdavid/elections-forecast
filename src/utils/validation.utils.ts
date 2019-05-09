@@ -39,8 +39,28 @@ const regions = [
     'Umbria',
     'Valle d\'Aosta',
     'Veneto',
-    'Estero' ]
+    'Estero' ];
 
+const thresholds = {
+    'CPI': 10,
+    'PP': 5,
+    'LG': 45,
+    'PDF': 5,
+    'FDV': 15,
+    'M5S': 45,
+    'PPI': 5,
+    'SVP': 5,
+    'LS': 15,
+    'PAI': 5,
+    'PD': 45,
+    'FI': 20,
+    '+EU': 15,
+    'PPA': 5,
+    'APE': 5,
+    'FDI': 15,
+    'PC': 15,
+    'FN': 5,
+};
 /**
  * Evaluate a new forecast
  * @param forecasts
@@ -48,7 +68,9 @@ const regions = [
  */
 export function evaluateForecasts(forecasts: IClientForecastPartyInput[]): boolean {
     for (const forecast of forecasts) {
-        if (forecast.percentage > 60) {
+        // @ts-ignore
+        if (forecast.percentage > thresholds[forecast.id]) {
+            console.log("not valid: " + forecast.id);
             return false;
         }
     }
