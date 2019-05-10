@@ -8,6 +8,7 @@ export default class UserForecast {
     @Column({ unique: true }) nickname: string;
     @Column() region: string;
     @Column() latestVersion: number;
+    @Column({ default: 'not-defined'}) ipAddress: string;
 
     @OneToMany(type => Forecast, forecast => forecast.userForecast)
     forecasts: Forecast[];

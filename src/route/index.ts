@@ -92,6 +92,8 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         return;
     }
 
+    // @ts-ignore
+    const ipAddress: string = (req.header('X-Forwarded-For')) ? req.header('X-Forwarded-For') : 'not-defined';
     const valid = evaluateForecasts(clientUserForecast.forecasts);
 
     await getManager().transaction(async entityManager => {
@@ -114,6 +116,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
         }
 
         const userForecast = new UserForecast();
+        userForecast.ipAddress = ipAddress || '';
         userForecast.email = clientUserForecast.email;
         userForecast.latestVersion = 1;
         userForecast.region = clientUserForecast.region;
@@ -136,7 +139,7 @@ router.post('/forecast', async (req: express.Request, res: express.Response) => 
 
             predictions.push(forecast);
         }
-        // todo: what happen if it fail in saving?
+
         await entityManager.save(userForecast);
         await entityManager.save(predictions);
         res.json({ message: 'pronostico salvato correttamente.', data: {}});
